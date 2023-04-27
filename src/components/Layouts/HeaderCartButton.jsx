@@ -6,6 +6,10 @@ import CartContext from "../../store/CartContext";
 const HeaderCartButton = (props) => {
   const cartCtx=useContext(CartContext)
 
+const qtyOfItems=cartCtx.items.reduce((currQty,item)=>{
+  return currQty+item.amount
+},0)
+
 
   const cartClickHandler=()=>[
 props.onCartClick()
@@ -14,7 +18,7 @@ props.onCartClick()
     <button className={styles.button} onClick={cartClickHandler}>
       <span className={styles.icon} ><CartIcon/></span>
       <span>Your Cart</span>
-      <span className={styles.badge}>3</span>
+      <span className={styles.badge}>{qtyOfItems}</span>
     </button>
   );
 };
