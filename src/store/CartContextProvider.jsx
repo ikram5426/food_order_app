@@ -1,13 +1,14 @@
-import React, { useReducer } from "react";
+import { useReducer } from "react";
+
 import CartContext from "./CartContext";
 
-const initialState={
-  items:[],
-  totalAmount:0
-}
+const defaultCartState = {
+  items: [],
+  totalAmount: 0,
+};
 
-const cartReducer=(state,action)=>{
-  if (action.type === 'ADD') {
+const cartReducer = (state, action) => {
+  if (action.type === "ADD") {
     const updatedTotalAmount =
       state.totalAmount + action.item.price * action.item.amount;
 
@@ -32,22 +33,52 @@ const cartReducer=(state,action)=>{
       items: updatedItems,
       totalAmount: updatedTotalAmount,
     };
-  }}
+  }
+  if (action.type === "REMOVE") {
+    const existingCartItemIndex = state.items.findIndex(
+      (item) => item.id === action.id
+    );
+    const existingItem = state.items[existingCartItemIndex];
+    const updatedTotalAmount = state.totalAmount - existingItem.price;
+    let updatedItems;
+    if (existingItem.amount === 1) {
+      updatedItems = state.items.filter((item) => item.id !== action.id);
+    } else {
+      const updatedItem = { ...existingItem, amount: existingItem.amount - 1 };
+      updatedItems = [...state.items];
+      updatedItems[existingCartItemIndex] = updatedItem;
+    }
 
-const CartContextProvider = (props) => {
-  const [cartState,cartDispatch]=useReducer(cartReducer,initialState)
-  const addItemHandler = (item) => {
-    cartDispatch({type:"ADD",item:item})
+    return {
+      items: updatedItems,
+      totalAmount: updatedTotalAmount,
+    };
+  }
+
+  return defaultCartState;
+};
+
+const CartProvider = (props) => {
+  const [cartState, dispatchCartAction] = useReducer(
+    cartReducer,
+    defaultCartState
+  );
+
+  const addItemToCartHandler = (item) => {
+    dispatchCartAction({ type: "ADD", item: item });
   };
 
-  const removeItemHandler = (id) => {};
+  const removeItemFromCartHandler = (id) => {
+    dispatchCartAction({ type: "REMOVE", id: id });
+  };
 
   const cartContext = {
     items: cartState.items,
     totalAmount: cartState.totalAmount,
-    addItem: addItemHandler,
-    removeItem: removeItemHandler,
+    addItem: addItemToCartHandler,
+    removeItem: removeItemFromCartHandler,
   };
+
   return (
     <CartContext.Provider value={cartContext}>
       {props.children}
@@ -55,4 +86,4 @@ const CartContextProvider = (props) => {
   );
 };
 
-export default CartContextProvider;
+export default CartProvider;
